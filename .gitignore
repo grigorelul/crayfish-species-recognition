@@ -1,0 +1,22 @@
+# Ignore dataset and article folders
+Articole/
+BazaDeDateRaci/
+BazaDeDateRaci_Augmented/
+dataset/
+dataset_cls/
+predictions/
+
+
+# Ignore Python cache and temporary files
+__pycache__/
+*.pyc
+*.pyo
+
+# Mediu virtual
+venv311/
+
+# JetBrains IDEs
+.idea/
+
+# VSCode
+.vscode/
