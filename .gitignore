@@ -5,7 +5,7 @@ BazaDeDateRaci_Augmented/
 dataset/
 dataset_cls/
 predictions/
-
+predictions_cls/
 
 # Ignore Python cache and temporary files
 __pycache__/
