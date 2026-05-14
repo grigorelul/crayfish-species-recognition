@@ -6,6 +6,7 @@ dataset/
 dataset_cls/
 predictions/
 predictions_cls/
+ExempleExterneDeTest/
 
 # Ignore Python cache and temporary files
 __pycache__/

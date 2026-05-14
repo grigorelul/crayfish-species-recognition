@@ -3,46 +3,25 @@ prepare_dataset_cls.py - Pregătire dataset pentru CLASIFICARE specii de raci
 =============================================================================
 
 CE FACE:
-    Parcurge folderul BazaDeDateRaci_Augmented/ (același ca la segmentare),
-    dar de data asta nu ne interesează JSON-urile LabelMe - ne interesează
-    NUMELE FOLDERULUI (= specia).
+    Parcurge folderul BazaDeDateRaci/ (ORIGINALELE, fara augmentari!)
+    si face split stratificat 70/15/15 pe imaginile ORIGINALE.
 
-    Copiază imaginile în dataset_cls/ cu structura pe care o așteaptă
-    PyTorch ImageFolder:
-        dataset_cls/
-            train/
-                Astacus astacus/
-                    img1.jpg
-                    img2.jpg
-            val/
-                Astacus astacus/
-                    img3.jpg
-            test/
-                ...
+    IMPORTANT - DE CE NU FOLOSIM BazaDeDateRaci_Augmented DIRECT:
+        Daca facem split dupa augmentare, aceeasi imagine originala apare
+        in train SI in val/test (ca variante augmentate).
+        Rezultat: val=1.0, test=1.0, dar pe o poza noua de pe internet = esec total.
+        Asta se numeste "data leakage" si e cauza principala de overfitting aparent.
 
-    Split STRATIFICAT: fiecare specie are proporțional 70% train, 15% val, 15% test.
-    Stratificat = nu amestecăm toate imaginile și împărțim la întâmplare,
-                  ci facem split-ul SEPARAT pentru fiecare specie.
-    De ce? Să nu ajungem cu o specie rară complet în train și 0 exemple în val/test.
+    Solutia corecta:
+        1. Split pe ORIGINALE (BazaDeDateRaci/)
+        2. Augmentarea se face DOAR pe train, la runtime in DataLoader
 
 UTILIZARE:
-    python prepare_dataset_cls.py
+    # Sursa = originalele (nu augmentatele!)
+    python prepare_dataset_cls.py --data_root BazaDeDateRaci
 
-    # Sursa diferita
-    python prepare_dataset_cls.py --data_root BazaDeDateRaci_Augmented
-
-    # Proportii diferite
-    python prepare_dataset_cls.py --train 0.80 --val 0.10
-
-    # Afisare statistici fara sa copieze nimic (dry run)
-    python prepare_dataset_cls.py --dry_run
-
-DOCUMENTATIE UTILA:
-    PyTorch ImageFolder (formatul de folder pe care il generam):
-        https://pytorch.org/vision/stable/generated/torchvision.datasets.ImageFolder.html
-
-    Stratified split (conceptul):
-        https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.train_test_split.html
+    # Dry run - afiseaza statistici fara sa copieze
+    python prepare_dataset_cls.py --data_root BazaDeDateRaci --dry_run
 """
 
 import argparse
@@ -52,67 +31,45 @@ from collections import defaultdict
 from pathlib import Path
 
 # ──────────────────────────────────────────────────────────────────────────────
-# Argumente
-# ──────────────────────────────────────────────────────────────────────────────
-parser = argparse.ArgumentParser(
-    description="Pregateste dataset_cls/ pentru clasificare specii"
-)
+parser = argparse.ArgumentParser()
 parser.add_argument(
-    "--data_root", default="BazaDeDateRaci_Augmented",
-    help="Folderul sursa cu structura: specie/img.jpg (default: BazaDeDateRaci_Augmented)"
+    "--data_root", default="BazaDeDateRaci",
+    help="Folderul cu ORIGINALELE (default: BazaDeDateRaci). NU cel augmentat!"
 )
-parser.add_argument(
-    "--out_dir", default="dataset_cls",
-    help="Folderul de output (default: dataset_cls)"
-)
-parser.add_argument(
-    "--train", type=float, default=0.70,
-    help="Proportia de train (default: 0.70 = 70%%)"
-    # ALTERNATIVA: 0.80 daca ai putine imagini per specie
-)
-parser.add_argument(
-    "--val", type=float, default=0.15,
-    help="Proportia de val (default: 0.15 = 15%%)"
-)
-parser.add_argument(
-    "--seed", type=int, default=42,
-    help="Seed pentru reproductibilitate (default: 42)"
-    # 42 e conventional in ML
-)
-parser.add_argument(
-    "--dry_run", action="store_true",
-    help="Afiseaza statistici fara sa copieze fisiere"
-)
+parser.add_argument("--out_dir",  default="dataset_cls")
+parser.add_argument("--train",    type=float, default=0.70)
+parser.add_argument("--val",      type=float, default=0.15)
+parser.add_argument("--seed",     type=int,   default=42)
+parser.add_argument("--dry_run",  action="store_true")
 args = parser.parse_args()
 
 random.seed(args.seed)
-
 IMG_EXTS = {".jpg", ".jpeg", ".png", ".bmp"}
 
 # ──────────────────────────────────────────────────────────────────────────────
-# Colecteaza imaginile grupate pe specie
+# Colecteaza imaginile ORIGINALE grupate pe specie
 # ──────────────────────────────────────────────────────────────────────────────
-# defaultdict(list) = un dictionar care creeaza automat o lista goala
-# pentru chei noi. Util ca sa nu verificam manual daca cheia exista.
 species_imgs: dict[str, list[Path]] = defaultdict(list)
 
 data_root = Path(args.data_root)
 if not data_root.exists():
-    raise FileNotFoundError(f"Folderul sursa nu exista: {data_root}")
+    raise FileNotFoundError(
+        f"Folderul sursa nu exista: {data_root}\n"
+        f"Asigura-te ca folosesti ORIGINALELE (BazaDeDateRaci), nu cele augmentate!"
+    )
 
 for species_dir in sorted(data_root.iterdir()):
     if not species_dir.is_dir():
         continue
-    species_name = species_dir.name  # ex: "Astacus astacus"
+    species_name = species_dir.name
 
     for img_path in sorted(species_dir.iterdir()):
         if img_path.suffix.lower() in IMG_EXTS:
             species_imgs[species_name].append(img_path)
 
 # ──────────────────────────────────────────────────────────────────────────────
-# Afisare statistici
-# ──────────────────────────────────────────────────────────────────────────────
 print(f"\n{'='*60}")
+print(f"  Sursa: {data_root}/ (imagini ORIGINALE)")
 print(f"  Specii gasite: {len(species_imgs)}")
 print(f"{'='*60}")
 total_imgs = 0
@@ -120,13 +77,18 @@ for sp, imgs in species_imgs.items():
     print(f"  {sp}: {len(imgs)} imagini")
     total_imgs += len(imgs)
 print(f"{'─'*60}")
-print(f"  TOTAL: {total_imgs} imagini")
+print(f"  TOTAL: {total_imgs} imagini originale")
 print(f"{'='*60}\n")
 
+if total_imgs == 0:
+    raise ValueError(
+        f"Nu s-au gasit imagini in {data_root}/\n"
+        f"Structura asteptata: {data_root}/NumeSpecie/img.jpg"
+    )
+
 # ──────────────────────────────────────────────────────────────────────────────
-# Split STRATIFICAT per specie
+# Split STRATIFICAT pe ORIGINALE
 # ──────────────────────────────────────────────────────────────────────────────
-# Structura: splits["train"] = {"Astacus astacus": [img1, img2, ...], ...}
 splits: dict[str, dict[str, list[Path]]] = {
     "train": defaultdict(list),
     "val":   defaultdict(list),
@@ -137,32 +99,30 @@ for species_name, imgs in species_imgs.items():
     imgs_copy = list(imgs)
     random.shuffle(imgs_copy)
 
-    n = len(imgs_copy)
+    n       = len(imgs_copy)
     n_train = max(1, round(n * args.train))
     n_val   = max(1, round(n * args.val))
-    # Restul merge la test
     n_test  = n - n_train - n_val
 
     splits["train"][species_name] = imgs_copy[:n_train]
     splits["val"][species_name]   = imgs_copy[n_train : n_train + n_val]
-    splits["test"][species_name]  = imgs_copy[n_train + n_val :]
+    splits["test"][species_name]  = imgs_copy[n_train + n_val:]
 
-    print(f"  {species_name}:")
-    print(f"    train={n_train}, val={n_val}, test={n_test}")
+    print(f"  {species_name}: train={n_train}, val={n_val}, test={n_test}")
 
-    # Avertizare daca test e gol (prea putine imagini)
     if n_test == 0:
-        print(f"    [WARN] Specia '{species_name}' nu are imagini in test!")
+        print(f"    [WARN] '{species_name}' nu are imagini in test!")
+    if n < 10:
+        print(f"    [WARN] Prea putine imagini originale ({n})! "
+              f"Considera sa colectezi mai multe date.")
 
-# ──────────────────────────────────────────────────────────────────────────────
-# Copiere fisiere
 # ──────────────────────────────────────────────────────────────────────────────
 if args.dry_run:
     print("\n[DRY RUN] Nu s-a copiat nimic. Sterge --dry_run ca sa copiezi.")
+    print("\nNOTA: augmentarile se vor face la runtime in train_cls.py,")
+    print("      DOAR pe split-ul de train (nu pe val/test).")
 else:
     out_root = Path(args.out_dir)
-
-    # Curata output-ul anterior daca exista
     if out_root.exists():
         print(f"\n[INFO] Sterg {out_root}/ anterior...")
         shutil.rmtree(out_root)
@@ -171,20 +131,18 @@ else:
         for species_name, img_paths in species_dict.items():
             dest_dir = out_root / split_name / species_name
             dest_dir.mkdir(parents=True, exist_ok=True)
-
             for img_path in img_paths:
                 shutil.copy2(img_path, dest_dir / img_path.name)
 
-        # Numara total imagini in split
         total_in_split = sum(len(v) for v in species_dict.values())
-        print(f"  [{split_name}] {total_in_split} imagini copiate")
+        print(f"  [{split_name}] {total_in_split} imagini copiate (originale)")
 
-    # Salveaza si lista de clase (utila la inferenta)
     classes_file = out_root / "classes.txt"
     with open(classes_file, "w", encoding="utf-8") as f:
         for sp in sorted(species_imgs.keys()):
             f.write(sp + "\n")
-    print(f"\n  Clase salvate in: {classes_file}")
 
-    print(f"\nGata! Dataset clasificare in: {out_root}/")
+    print(f"\n  Clase salvate in: {classes_file}")
+    print(f"\nGata! Dataset in: {out_root}/")
+    print("IMPORTANT: augmentarile se aplica automat la runtime in train_cls.py")
     print("Acum ruleaza: python train_cls.py")
