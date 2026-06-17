@@ -1,10 +1,10 @@
 # Ignore everything in the repository
 *
 
-# Keep only the three requested files
+# Keep only these files
 !/.gitignore
 !CropRaci.py
 !Predict.py
 !TrainClassifier.py
-best_cls_model.pth
-best_model.pth
+!README.md
+!requirements.txt
