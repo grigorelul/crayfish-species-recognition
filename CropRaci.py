@@ -2,16 +2,15 @@ import json
 from pathlib import Path
 from PIL import Image
 
-# ── Configurare ──────────────────────────────────────────────────────────────
 
-SRC_DIR       = "BazaDeDateRaci"       # folderul cu pozele originale si JSON-urile LabelMe
-DST_DIR       = "BazaDeDateRaciCropped"  # unde se salveaza crop-urile
-LABEL         = "rac"                  # label-ul din LabelMe
-IMG_SIZE      = 227                    # dimensiunea finala (pixeli)
-PADDING       = 20                     # spatiu extra in jurul racului (pixeli)
-FORCE         = False                  # True = suprascrie crop-urile existente
-PREVIEW       = False                  # True = afiseaza crop-urile fara sa salveze
-TRUNC_SPLIT   = True                   # True = separa complet/ si truncated/
+SRC_DIR       = "BazaDeDateRaci"       
+DST_DIR       = "BazaDeDateRaciCropped"  
+LABEL         = "rac"                  
+IMG_SIZE      = 227                    
+PADDING       = 20                     
+FORCE         = False                  
+PREVIEW       = False                  
+TRUNC_SPLIT   = True                   
 
 CLASS_NAMES = {
     "Austropotamobius bihariensis": "Austropotamobius_bihariensis",
@@ -20,7 +19,6 @@ CLASS_NAMES = {
 
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".bmp", ".tiff", ".tif", ".webp"}
 
-# ── Functii ───────────────────────────────────────────────────────────────────
 
 def is_truncated(img_path: Path) -> bool:
     return "_trunc" in img_path.stem.lower()
@@ -76,7 +74,6 @@ def get_subfolder(base: Path, truncated: bool) -> Path:
     return base / ("truncated" if truncated else "complet")
 
 
-# ── Main ──────────────────────────────────────────────────────────────────────
 
 root    = Path(__file__).resolve().parent
 src_dir = root / SRC_DIR

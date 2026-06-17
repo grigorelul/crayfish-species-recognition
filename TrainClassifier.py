@@ -20,7 +20,7 @@ from torch.utils.data import Dataset, DataLoader
 import torchvision.transforms as transforms
 import torchvision.models as models
 
-# ── Cai ──────────────────────────────────────────────────────────────────────
+
 
 ROOT_DIR    = Path(__file__).resolve().parent
 CROPPED_DIR = ROOT_DIR / "BazaDeDateRaciCropped"
@@ -32,7 +32,7 @@ CLASS_NAMES = {
 
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".bmp", ".tiff", ".tif", ".webp"}
 
-# ── Configurare ───────────────────────────────────────────────────────────────
+
 
 IMG_SIZE        = 227
 BATCH_SIZE      = 64
@@ -51,7 +51,7 @@ np.random.seed(SEED)
 torch.manual_seed(SEED)
 
 
-# ── Dataset PyTorch ───────────────────────────────────────────────────────────
+
 
 class RaciDataset(Dataset):
     def __init__(self, samples, transform=None):
@@ -69,7 +69,6 @@ class RaciDataset(Dataset):
         return img, label
 
 
-# ── Colectare imagini ─────────────────────────────────────────────────────────
 
 def build_samples():
     samples   = []
@@ -91,13 +90,12 @@ def build_samples():
                 samples.append((str(f), label_idx))
 
     if not samples:
-        raise SystemExit(f"[EROARE] Nicio imagine gasita in {CROPPED_DIR}. Ruleaza CropRaci.py mai intai.")
+        raise SystemExit(f"[EROARE] Nicio imagine gasita in {CROPPED_DIR}.")
 
     random.shuffle(samples)
     return samples, label_map
 
 
-# ── Model: AlexNet cu transfer learning ──────────────────────────────────────
 
 def build_alexnet_transfer(num_classes=2):
     model = models.alexnet(weights=models.AlexNet_Weights.DEFAULT)
@@ -110,7 +108,6 @@ def build_alexnet_transfer(num_classes=2):
     return model
 
 
-# ── Antrenare ─────────────────────────────────────────────────────────────────
 
 def train_model():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -273,7 +270,6 @@ def train_model():
     print(f"Test accuracy: {ts_correct / ts_total:.2%}")
 
 
-# ── Main ──────────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
     train_model()

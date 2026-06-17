@@ -7,12 +7,9 @@ import torchvision.models as models
 import torchvision.transforms as transforms
 from PIL import Image
 
-# ──────────────────────────────────────────────
-# Configurare — modifica aici ce ai nevoie
-# ──────────────────────────────────────────────
 
-IMAGE_PATH = None          # None = deschide dialog; "poza.jpg" = imagine directa
-SHOW_GUI   = True          # True = fereastra matplotlib cu grafic; False = doar terminal
+IMAGE_PATH = None          
+SHOW_GUI   = True          
 
 IMG_SIZE    = 227
 CLASS_NAMES = ["Austropotamobius bihariensis", "Austropotamobius torrentium"]
@@ -20,9 +17,6 @@ MEAN        = [0.485, 0.456, 0.406]
 STD         = [0.229, 0.224, 0.225]
 MODEL_FILE  = Path(__file__).resolve().parent / "alexnet_raci_best.pth"
 
-# ──────────────────────────────────────────────
-# Model
-# ──────────────────────────────────────────────
 
 def build_model():
     model = models.alexnet(weights=None)
@@ -41,9 +35,7 @@ def load_model(device):
     model.eval()
     return model
 
-# ──────────────────────────────────────────────
-# Imagine
-# ──────────────────────────────────────────────
+
 
 def select_image():
     try:
@@ -79,9 +71,7 @@ def preprocess(image_path):
     img = Image.open(image_path).convert("RGB")
     return transform(img).unsqueeze(0)
 
-# ──────────────────────────────────────────────
-# Predictie
-# ──────────────────────────────────────────────
+
 
 def predict(model, tensor, device):
     tensor = tensor.to(device)
@@ -90,9 +80,7 @@ def predict(model, tensor, device):
     pred_idx = torch.argmax(probs, dim=1).item()
     return pred_idx, probs.squeeze().cpu().tolist()
 
-# ──────────────────────────────────────────────
-# Afisare
-# ──────────────────────────────────────────────
+
 
 def show_terminal(image_path, pred_idx, probs):
     print(f"\nImagine: {image_path.name}")
@@ -133,9 +121,7 @@ def show_gui(image_path, pred_idx, probs):
     except ImportError:
         pass
 
-# ──────────────────────────────────────────────
-# Main
-# ──────────────────────────────────────────────
+# ────────Main─────────────────
 
 def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
