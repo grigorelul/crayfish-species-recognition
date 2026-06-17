@@ -1,40 +1,9 @@
-# Core dependencies
-ultralytics
-opencv-python
 numpy
+Pillow
 torch
 torchvision
-torchaudio
-pillow
 matplotlib
-tqdm
-labelme # To run labelme need py -m labelme
 
-# Lovász - instaleaza manual: pip install git+https://github.com/bermanmaxim/LovaszSoftmax.git
-# https://github.com/bermanmaxim/LovaszSoftmax
-
-
-# GPU PyTorch (CUDA 13.2) - PyTorch 2.2+
-torch>=2.2.0
-torchvision>=0.17.0
-torchaudio>=2.2.0
-
-# UNet segmentation dependencies
-pretrained-backbones-unet
-albumentations
-scikit-image
-timm<1.0.0
-segmentation-models-pytorch
-segmentation-models-pytorch
-
-#pentru a putea intra in environment-ul creat pentru acest proiect, trebuie sa rulam urmatoarea comanda in powershell:
-# Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser 
-#Pentru a putea rula in terminal din VSCODE, iar apoi linia urmatoare pentru a activa environment-ul creat pentru acest proiect:
-# venv311\Scripts\activate
-#pentru a iesi din mediul folosim comanda
-# deactivate
-
-#Pentru a scapa de erorile de la modelele de backbone-uri 
-#trebuia un timm mai vechi dar nu era ok pentru versiunea 3.13 de python, 
-#am adaugat un environment pe python 3.11.9
+# Optional, but recommended for a smoother experience on Windows:
+# pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
 

@@ -1,21 +1,43 @@
-# Sistem de Clasificare a Speciilor de Rac (Crayfish Species Classification System)
+# Clasificarea speciilor de raci
 
-# Instalare dependințe trebuie run la requirements.txt
+Acest proiect folosește doar trei scripturi principale:
 
-# 1. Dataset segmentare
-python prepare_dataset.py --data_root BazaDeDateRaci
+- [CropRaci.py](CropRaci.py) — generează crop-uri din imaginile etichetate cu LabelMe
+- [Predict.py](Predict.py) — face predicția pentru o singură imagine folosind modelul salvat
+- [TrainClassifier.py](TrainClassifier.py) — antrenează un clasificator AlexNet pe crop-uri
 
-# 2. Antrenare segmentare
-python train.py --n_classes 5 --amp --patience 20
+## Cum funcționează
 
-# 3. Evaluare segmentare
-python predict.py --split test
+1. Pregătește datele
+   - Asigură-te că folderul `BazaDeDateRaci` conține imaginile și fișierele JSON cu etichete.
+   - Rulează:
+     ```bash
+     python CropRaci.py
+     ```
+   - Rezultatul va fi salvat în folderul `BazaDeDateRaciCropped`.
 
-# 4. Dataset clasificare (folosește noul best_model.pth)
-python prepare_dataset_cls.py --data_root BazaDeDateRaci
+2. Antrenează modelul
+   - Rulează:
+     ```bash
+     python TrainClassifier.py
+     ```
+   - Scriptul va crea modelul final în `alexnet_raci_best.pth`.
 
-# 5. Antrenare clasificare
-python train_cls.py --unfreeze_epoch 15
+3. Fă predicții
+   - Rulează:
+     ```bash
+     python Predict.py
+     ```
+   - Va cere o imagine și va afișa clasa prezisă.
 
-# 6. Evaluare clasificare
-python predict_cls.py --split test
+## Cerințe
+
+Instalează dependențele cu:
+
+```bash
+pip install -r requirements.txt
+```
+
+## Notă
+
+Acest README este bazat doar pe fluxul oferit de cele trei fișiere menționate mai sus.
