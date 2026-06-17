@@ -3,7 +3,4 @@ Pillow
 torch
 torchvision
 matplotlib
-
-# Optional, but recommended for a smoother experience on Windows:
-# pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
-
+labelme

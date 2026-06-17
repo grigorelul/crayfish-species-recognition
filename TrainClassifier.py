@@ -16,7 +16,7 @@ from PIL import Image
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.utils.data import Dataset, DataLoader, WeightedRandomSampler
+from torch.utils.data import Dataset, DataLoader
 import torchvision.transforms as transforms
 import torchvision.models as models
 
@@ -40,13 +40,10 @@ LEARNING_RATE   = 0.001
 MOMENTUM        = 0.9
 WEIGHT_DECAY    = 0.0005
 NUM_EPOCHS      = 60
-DROPOUT_P       = 0.5
 LABEL_SMOOTHING = 0.1
-MIXUP_ALPHA     = 0.0   # 0.0 = dezactivat; incearca 0.4 daca apare overfitting
 
 TRAIN_RATIO = 0.70
 VAL_RATIO   = 0.15
-TEST_RATIO  = 0.15
 
 SEED = 42
 random.seed(SEED)
@@ -81,7 +78,7 @@ def build_samples():
     for name, label_idx in label_map.items():
         cls_dir = CROPPED_DIR / name
         if not cls_dir.exists():
-            print(f"[ATENTIE] Folder lipsa: {cls_dir}")
+            print(f"Folder lipsa: {cls_dir}")
             continue
         for sub in ["complet", "truncated"]:
             sub_dir = cls_dir / sub
@@ -111,14 +108,6 @@ def build_alexnet_transfer(num_classes=2):
     in_features = model.classifier[6].in_features
     model.classifier[6] = nn.Linear(in_features, num_classes)
     return model
-
-
-# ── MixUp (optional) ─────────────────────────────────────────────────────────
-
-def mixup_batch(imgs, labels, alpha):
-    lam = np.random.beta(alpha, alpha)
-    idx = torch.randperm(imgs.size(0), device=imgs.device)
-    return lam * imgs + (1 - lam) * imgs[idx], labels, labels[idx], lam
 
 
 # ── Antrenare ─────────────────────────────────────────────────────────────────
@@ -182,25 +171,9 @@ def train_model():
 
     print(f"\nTOTAL: {len(train_samples)} train | {len(val_samples)} val | {len(test_samples)} test")
 
-    class_counts = {}
-    for _, lbl in train_samples:
-        class_counts[lbl] = class_counts.get(lbl, 0) + 1
-
-    max_c = max(class_counts.values())
-    min_c = min(class_counts.values())
-
-    if max_c / max(min_c, 1) > 1.5:
-        print(f"\nClase dezechilibrate (min={min_c}, max={max_c}). Activez WeightedRandomSampler.")
-        class_weights  = {lbl: 1.0 / max(cnt, 1) for lbl, cnt in class_counts.items()}
-        sample_weights = [class_weights[lbl] for _, lbl in train_samples]
-        sampler = WeightedRandomSampler(sample_weights, len(sample_weights), replacement=True)
-        train_loader = DataLoader(RaciDataset(train_samples, train_transform),
-                                  batch_size=BATCH_SIZE, sampler=sampler,
-                                  num_workers=2, pin_memory=(device.type == "cuda"))
-    else:
-        train_loader = DataLoader(RaciDataset(train_samples, train_transform),
-                                  batch_size=BATCH_SIZE, shuffle=True,
-                                  num_workers=2, pin_memory=(device.type == "cuda"))
+    train_loader = DataLoader(RaciDataset(train_samples, train_transform),
+                              batch_size=BATCH_SIZE, shuffle=True,
+                              num_workers=2, pin_memory=(device.type == "cuda"))
 
     val_loader  = DataLoader(RaciDataset(val_samples, eval_transform),
                              batch_size=BATCH_SIZE, shuffle=False,
@@ -239,26 +212,16 @@ def train_model():
         for inputs, labels in train_loader:
             inputs, labels = inputs.to(device), labels.to(device)
 
-            use_mixup = MIXUP_ALPHA > 0
-            if use_mixup:
-                inputs, labels_a, labels_b, lam = mixup_batch(inputs, labels, MIXUP_ALPHA)
-
             optimizer.zero_grad()
             outputs = model(inputs)
-
-            if use_mixup:
-                loss = lam * criterion(outputs, labels_a) + (1 - lam) * criterion(outputs, labels_b)
-                acc_labels = labels_a if lam >= 0.5 else labels_b
-            else:
-                loss = criterion(outputs, labels)
-                acc_labels = labels
+            loss    = criterion(outputs, labels)
 
             loss.backward()
             optimizer.step()
 
             tr_loss    += loss.item() * inputs.size(0)
             _, preds    = torch.max(outputs, 1)
-            tr_correct += (preds == acc_labels).sum().item()
+            tr_correct += (preds == labels).sum().item()
             tr_total   += labels.size(0)
 
         train_loss = tr_loss / tr_total

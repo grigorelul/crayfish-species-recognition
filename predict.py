@@ -95,15 +95,10 @@ def predict(model, tensor, device):
 # ──────────────────────────────────────────────
 
 def show_terminal(image_path, pred_idx, probs):
-    print(f"\n{'='*55}")
-    print(f"  Imagine:   {image_path.name}")
-    print(f"  Predictie: {CLASS_NAMES[pred_idx]}  ({probs[pred_idx]*100:.1f}%)")
-    print(f"{'='*55}")
-    for i, (name, prob) in enumerate(zip(CLASS_NAMES, probs)):
-        bar = "█" * int(prob * 30) + "░" * (30 - int(prob * 30))
-        tag = " <-- PREZIS" if i == pred_idx else ""
-        print(f"  [{bar}] {prob*100:5.1f}%  {name}{tag}")
-    print(f"{'='*55}")
+    print(f"\nImagine: {image_path.name}")
+    print(f"Predictie: {CLASS_NAMES[pred_idx]} ({probs[pred_idx]*100:.1f}%)")
+    for name, prob in zip(CLASS_NAMES, probs):
+        print(f"  {name}: {prob*100:.1f}%")
 
 
 def show_gui(image_path, pred_idx, probs):

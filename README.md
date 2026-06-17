@@ -8,22 +8,29 @@ Acest proiect folosește doar trei scripturi principale:
 
 ## Cum funcționează
 
-1. Pregătește datele
-   - Asigură-te că folderul `BazaDeDateRaci` conține imaginile și fișierele JSON cu etichete.
+1. Etichetează imaginile (daca nu ai deja fișierele JSON)
+   - Pune imaginile în `BazaDeDateRaci`, separate pe subfoldere cu numele speciilor (vezi `CLASS_NAMES` din `CropRaci.py`).
+   - Rulează LabelMe:
+     ```bash
+     labelme BazaDeDateRaci
+     ```
+   - Pentru fiecare imagine desenează un dreptunghi în jurul racului și pune-i eticheta `rac`, apoi salvează (Ctrl+S). Se va crea un `.json` cu același nume lângă imagine.
+
+2. Generează crop-urile
    - Rulează:
      ```bash
      python CropRaci.py
      ```
    - Rezultatul va fi salvat în folderul `BazaDeDateRaciCropped`.
 
-2. Antrenează modelul
+3. Antrenează modelul
    - Rulează:
      ```bash
      python TrainClassifier.py
      ```
    - Scriptul va crea modelul final în `alexnet_raci_best.pth`.
 
-3. Fă predicții
+4. Fă predicții
    - Rulează:
      ```bash
      python Predict.py
@@ -37,7 +44,3 @@ Instalează dependențele cu:
 ```bash
 pip install -r requirements.txt
 ```
-
-## Notă
-
-Acest README este bazat doar pe fluxul oferit de cele trei fișiere menționate mai sus.
