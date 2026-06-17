@@ -2,29 +2,20 @@
 
 # Instalare dependințe trebuie run la requirements.txt
 
+# 1. Dataset segmentare
+python prepare_dataset.py --data_root BazaDeDateRaci
 
-# 1. Pregătești datele 
-python prepare_dataset.py --data_root BazaDeDateRaci_Augmented
+# 2. Antrenare segmentare
+python train.py --n_classes 5 --amp --patience 20
 
-# 2. Antrenezi 
-python train.py --data_dir dataset --epochs 100 --batch_size 4 --amp
+# 3. Evaluare segmentare
+python predict.py --split test
 
-# 3a. Evaluez pe test set 
-python predict.py --model best_model.pth --split test
+# 4. Dataset clasificare (folosește noul best_model.pth)
+python prepare_dataset_cls.py --data_root BazaDeDateRaci
 
-# 3b. Folosesc pe imagini noi 
-python predict.py --model best_model.pth --input imagine_noua.jpg
+# 5. Antrenare clasificare
+python train_cls.py --unfreeze_epoch 15
 
-
-## Pentru clasificator
-# 1. Pregătești datele
-python prepare_dataset_cls.py
-
-# 2. Antrenezi clasificatorul
-python train_cls.py --epochs 50 --batch_size 16 --amp
-
-# 3. Evaluezi pe test
+# 6. Evaluare clasificare
 python predict_cls.py --split test
-
-# 4. Folosesti pe imagini noi
-python pipeline.py --input poza.jpg

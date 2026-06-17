@@ -1,239 +1,163 @@
-"""
-predict.py - inferenta chela vs background
-==========================================
-Moduri de rulare:
-
-  # Pe o imagine noua (fara masca, doar vizualizare)
-  python predict.py --model best_model.pth --input poza.jpg
-
-  # Pe un folder cu imagini noi
-  python predict.py --model best_model.pth --input folder/
-
-  # Pe un split din dataset (val sau test) - compara cu masca reala
-  python predict.py --model best_model.pth --split val
-  python predict.py --model best_model.pth --split test
-"""
-
-import argparse
-import numpy as np
+import sys
 from pathlib import Path
 
 import torch
+import torch.nn as nn
+import torchvision.models as models
+import torchvision.transforms as transforms
 from PIL import Image
-import albumentations as A
-from albumentations.pytorch import ToTensorV2
-import segmentation_models_pytorch as smp
-import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
 
-parser = argparse.ArgumentParser()
-parser.add_argument("--model",     default="best_model.pth")
-parser.add_argument("--input",     default=None,
-                    help="Imagine sau folder cu imagini noi (fara masca)")
-parser.add_argument("--split",     default=None, choices=["val", "test"],
-                    help="Ruleaza pe dataset/val sau dataset/test (cu masca reala)")
-parser.add_argument("--data_dir",  default="dataset",
-                    help="Folderul dataset (folosit cu --split)")
-parser.add_argument("--out_dir",   default="predictions")
-parser.add_argument("--img_size",  type=int,   default=512)
-parser.add_argument("--threshold", type=float, default=0.5)
-args = parser.parse_args()
+# ──────────────────────────────────────────────
+# Configurare — modifica aici ce ai nevoie
+# ──────────────────────────────────────────────
 
-if args.input is None and args.split is None:
-    raise ValueError("Trebuie sa dai --input SAU --split val/test")
+IMAGE_PATH = None          # None = deschide dialog; "poza.jpg" = imagine directa
+SHOW_GUI   = True          # True = fereastra matplotlib cu grafic; False = doar terminal
 
-# ──────────────────────────────────────────────────────────────────────────────
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-print(f"Device: {device}")
+IMG_SIZE    = 227
+CLASS_NAMES = ["Austropotamobius bihariensis", "Austropotamobius torrentium"]
+MEAN        = [0.485, 0.456, 0.406]
+STD         = [0.229, 0.224, 0.225]
+MODEL_FILE  = Path(__file__).resolve().parent / "alexnet_raci_best.pth"
 
-checkpoint = torch.load(args.model, map_location=device, weights_only=False) 
-backbone   = checkpoint["backbone"]
-print(f"Backbone: {backbone} | Epoca: {checkpoint['epoch']} | Val Dice: {checkpoint['val_dice']:.4f}")
+# ──────────────────────────────────────────────
+# Model
+# ──────────────────────────────────────────────
 
-model = smp.Unet(
-    encoder_name=backbone,
-    encoder_weights=None,
-    in_channels=3,
-    classes=1,
-    activation=None,
-)
-model.load_state_dict(checkpoint["model_state"])
-model = model.to(device).eval()
+def build_model():
+    model = models.alexnet(weights=None)
+    in_features = model.classifier[6].in_features
+    model.classifier[6] = nn.Linear(in_features, len(CLASS_NAMES))
+    return model
 
-MEAN = (0.485, 0.456, 0.406)
-STD  = (0.229, 0.224, 0.225)
 
-transform = A.Compose([
-    A.Resize(args.img_size, args.img_size),
-    A.Normalize(mean=MEAN, std=STD),
-    ToTensorV2(),
-])
+def load_model(device):
+    if not MODEL_FILE.exists():
+        sys.exit(f"Modelul nu a fost gasit: {MODEL_FILE}")
 
-IMG_EXTS = {".jpg", ".jpeg", ".png", ".bmp"}
+    model = build_model()
+    model.load_state_dict(torch.load(MODEL_FILE, map_location=device))
+    model.to(device)
+    model.eval()
+    return model
 
-# ──────────────────────────────────────────────────────────────────────────────
-def predict_one(img_path):
-    original = np.array(Image.open(img_path).convert("RGB"))
-    H_orig, W_orig = original.shape[:2]  
-    
-    tensor   = transform(image=original)["image"].unsqueeze(0).to(device)
+# ──────────────────────────────────────────────
+# Imagine
+# ──────────────────────────────────────────────
+
+def select_image():
+    try:
+        import tkinter as tk
+        from tkinter import filedialog
+
+        root = tk.Tk()
+        root.withdraw()
+        root.attributes("-topmost", True)
+        path = filedialog.askopenfilename(
+            title="Selecteaza o imagine",
+            filetypes=[("Imagini", "*.jpg *.jpeg *.png *.bmp *.tiff *.webp")]
+        )
+        root.destroy()
+
+        if not path:
+            sys.exit("Nicio imagine selectata.")
+        return Path(path)
+
+    except Exception:
+        path = input("Cale imagine: ").strip().strip('"').strip("'")
+        if not path:
+            sys.exit("Nicio cale introdusa.")
+        return Path(path)
+
+
+def preprocess(image_path):
+    transform = transforms.Compose([
+        transforms.Resize((IMG_SIZE, IMG_SIZE)),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=MEAN, std=STD),
+    ])
+    img = Image.open(image_path).convert("RGB")
+    return transform(img).unsqueeze(0)
+
+# ──────────────────────────────────────────────
+# Predictie
+# ──────────────────────────────────────────────
+
+def predict(model, tensor, device):
+    tensor = tensor.to(device)
     with torch.no_grad():
-        logits = model(tensor)
-        probs  = torch.sigmoid(logits).squeeze().cpu().numpy()
-        mask   = (probs > args.threshold)
-    
-    # Redimensionează probs și mask înapoi la dimensiunea originală
-    probs = np.array(Image.fromarray((probs * 255).astype(np.uint8)).resize(
-        (W_orig, H_orig), Image.BILINEAR
-    )) / 255.0
-    
-    mask = np.array(Image.fromarray((mask.astype(np.uint8) * 255)).resize(
-        (W_orig, H_orig), Image.NEAREST
-    )) > 127
-    
-    return original, probs, mask
+        probs = torch.softmax(model(tensor), dim=1)
+    pred_idx = torch.argmax(probs, dim=1).item()
+    return pred_idx, probs.squeeze().cpu().tolist()
+
+# ──────────────────────────────────────────────
+# Afisare
+# ──────────────────────────────────────────────
+
+def show_terminal(image_path, pred_idx, probs):
+    print(f"\n{'='*55}")
+    print(f"  Imagine:   {image_path.name}")
+    print(f"  Predictie: {CLASS_NAMES[pred_idx]}  ({probs[pred_idx]*100:.1f}%)")
+    print(f"{'='*55}")
+    for i, (name, prob) in enumerate(zip(CLASS_NAMES, probs)):
+        bar = "█" * int(prob * 30) + "░" * (30 - int(prob * 30))
+        tag = " <-- PREZIS" if i == pred_idx else ""
+        print(f"  [{bar}] {prob*100:5.1f}%  {name}{tag}")
+    print(f"{'='*55}")
 
 
-def dice_np(pred, gt):
-    inter = (pred & gt).sum()
-    union = pred.sum() + gt.sum()
-    return 2 * inter / union if union > 0 else 1.0
+def show_gui(image_path, pred_idx, probs):
+    try:
+        import matplotlib.pyplot as plt
+        import matplotlib.patches as mpatches
+
+        fig, axes = plt.subplots(1, 2, figsize=(12, 5))
+        fig.suptitle("Clasificare Raci de Apa Dulce", fontsize=14, fontweight="bold")
+
+        axes[0].imshow(Image.open(image_path).convert("RGB"))
+        axes[0].set_title(image_path.name, fontsize=10)
+        axes[0].axis("off")
+
+        colors = ["#4CAF50" if i == pred_idx else "#2196F3" for i in range(len(CLASS_NAMES))]
+        bars = axes[1].barh(CLASS_NAMES, [p * 100 for p in probs], color=colors)
+        axes[1].set_xlim(0, 100)
+        axes[1].set_xlabel("Probabilitate (%)")
+
+        for bar, prob in zip(bars, probs):
+            axes[1].text(bar.get_width() + 1, bar.get_y() + bar.get_height() / 2,
+                         f"{prob*100:.1f}%", va="center", fontsize=10)
+
+        axes[1].legend(handles=[
+            mpatches.Patch(color="#4CAF50", label="Clasa prezisa"),
+            mpatches.Patch(color="#2196F3", label="Alta clasa"),
+        ], loc="lower right")
+
+        plt.tight_layout()
+        plt.show()
+
+    except ImportError:
+        pass
+
+# ──────────────────────────────────────────────
+# Main
+# ──────────────────────────────────────────────
+
+def main():
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model  = load_model(device)
+
+    image_path = Path(IMAGE_PATH) if IMAGE_PATH else select_image()
+
+    if not image_path.exists():
+        sys.exit(f"Imaginea nu a fost gasita: {image_path}")
+
+    pred_idx, probs = predict(model, preprocess(image_path), device)
+
+    show_terminal(image_path, pred_idx, probs)
+
+    if SHOW_GUI:
+        show_gui(image_path, pred_idx, probs)
 
 
-def save_viz_no_gt(img_path, original, probs, mask, out_dir):
-    fig, axes = plt.subplots(1, 3, figsize=(16, 5))
-    
-    pct = mask.mean() * 100 
-    
-    axes[0].imshow(original)
-    axes[0].set_title("Original")
-    axes[0].axis("off")
-
-    im = axes[1].imshow(probs, cmap="hot", vmin=0, vmax=1)
-    axes[1].set_title(f"Probabilitate chela ({pct:.1f}% detectat)") 
-    axes[1].axis("off")
-    plt.colorbar(im, ax=axes[1], fraction=0.046, pad=0.04)
-
-    overlay = original.copy().astype(float)
-    green = np.zeros_like(original, dtype=float)
-    green[mask] = [0, 220, 80]
-    overlay = np.clip(overlay * 0.6 + green * 0.4, 0, 255).astype(np.uint8)
-    axes[2].imshow(overlay)
-    axes[2].set_title(f"Chela detectata (prag {args.threshold})")
-    axes[2].axis("off")
-
-    patches = [
-        mpatches.Patch(color=[0, 220/255, 80/255], label="chela"),
-        mpatches.Patch(color="black", label="background"),
-    ]
-    fig.legend(handles=patches, loc="lower center", ncol=2)
-    plt.suptitle(Path(img_path).name, fontsize=11)
-    plt.tight_layout()
-    out_path = Path(out_dir) / (Path(img_path).stem + "_pred.png")
-    plt.savefig(out_path, dpi=120, bbox_inches="tight")
-    plt.close()
-
-
-def save_viz_with_gt(img_path, original, probs, pred_mask, gt_mask, dice, out_dir):
-    """Vizualizare cu ground truth alaturi - pentru val/test."""
-    fig, axes = plt.subplots(1, 4, figsize=(20, 5))
-
-    axes[0].imshow(original)
-    axes[0].set_title("Original")
-    axes[0].axis("off")
-
-    # Ground truth - verde
-    gt_overlay = original.copy().astype(float)
-    g = np.zeros_like(original, dtype=float)
-    g[gt_mask] = [0, 200, 80]
-    gt_overlay = np.clip(gt_overlay * 0.5 + g * 0.5, 0, 255).astype(np.uint8)
-    axes[1].imshow(gt_overlay)
-    axes[1].set_title("Ground Truth (adnotat)")
-    axes[1].axis("off")
-
-    # Predictie - albastru
-    pred_overlay = original.copy().astype(float)
-    b = np.zeros_like(original, dtype=float)
-    b[pred_mask] = [30, 144, 255]
-    pred_overlay = np.clip(pred_overlay * 0.5 + b * 0.5, 0, 255).astype(np.uint8)
-    axes[2].imshow(pred_overlay)
-    axes[2].set_title(f"Predictie (prag {args.threshold})")
-    axes[2].axis("off")
-
-    # Comparatie: TP=verde, FP=rosu, FN=galben
-    comp = np.zeros((*gt_mask.shape, 3), dtype=np.uint8)
-    tp = pred_mask & gt_mask # True Positive(verde)
-    fp = pred_mask & ~gt_mask # False Positive(rosu)
-    fn = ~pred_mask & gt_mask # False Negative(galben)
-    comp[tp] = [0, 200, 80]    # verde  = detectat corect
-    comp[fp] = [220, 50, 50]   # rosu   = detectat gresit (nu era chela)
-    comp[fn] = [255, 220, 0]   # galben = ratat (era chela, nu a detectat)
-    axes[3].imshow(comp)
-    axes[3].set_title(f"F1 SCORE |(Dice: {dice:.4f})")
-    axes[3].axis("off")
-
-    patches = [
-        mpatches.Patch(color=[0, 200/255, 80/255],  label="True Positive (corect)"),
-        mpatches.Patch(color=[220/255, 50/255, 50/255], label="False Positive (detectat gresit)"),
-        mpatches.Patch(color=[1, 220/255, 0],        label="False Negative (ratat)"),
-    ]
-    fig.legend(handles=patches, loc="lower center", ncol=3, bbox_to_anchor=(0.5, -0.05))
-    plt.suptitle(Path(img_path).name, fontsize=11)
-    plt.tight_layout()
-    out_path = Path(out_dir) / (Path(img_path).stem + "_pred.png")
-    plt.savefig(out_path, dpi=120, bbox_inches="tight")
-    plt.close()
-
-# ──────────────────────────────────────────────────────────────────────────────
-out_dir = Path(args.out_dir)
-out_dir.mkdir(parents=True, exist_ok=True)
-
-# -- Mod 1: split val/test cu ground truth --
-if args.split:
-    img_dir  = Path(args.data_dir) / args.split / "images"
-    mask_dir = Path(args.data_dir) / args.split / "masks"
-
-    img_paths = sorted(p for p in img_dir.iterdir() if p.suffix.lower() in IMG_EXTS)
-    print(f"\nRulez pe split '{args.split}': {len(img_paths)} imagini")
-
-    dice_scores = []
-    for img_path in img_paths:
-        original, probs, pred_mask = predict_one(img_path)
-
-        # Redimensioneaza pred_mask la dimensiunea originala pt comparatie corecta
-        H_orig, W_orig = original.shape[:2]
-        pred_resized = np.array(
-            Image.fromarray(pred_mask.astype(np.uint8) * 255).resize(
-                (W_orig, H_orig), Image.NEAREST
-            )
-        ) > 127
-
-        # Ground truth
-        mask_path = mask_dir / (img_path.stem + ".png")
-        gt_mask = np.array(Image.open(mask_path).convert("L")) > 127
-
-        dice = dice_np(pred_resized, gt_mask)
-        dice_scores.append(dice)
-        print(f"  {img_path.name}: Dice = {dice:.4f}")
-
-        save_viz_with_gt(img_path, original, probs, pred_resized, gt_mask, dice, out_dir)
-
-    print(f"\nDice mediu pe {args.split}: {np.mean(dice_scores):.4f}")
-    print(f"Dice minim:  {np.min(dice_scores):.4f}")
-    print(f"Dice maxim:  {np.max(dice_scores):.4f}")
-
-# -- Mod 2: imagini noi fara masca -- 
-else:
-    input_path = Path(args.input)
-    img_paths = (
-        [input_path] if input_path.is_file()
-        else sorted(p for p in input_path.iterdir() if p.suffix.lower() in IMG_EXTS)
-    )
-    print(f"\nProcesez {len(img_paths)} imagini...")
-    for img_path in img_paths:
-        original, probs, mask = predict_one(img_path)
-        pct = mask.mean() * 100
-        print(f"  {img_path.name}: {pct:.1f}% pixeli detectati ca chela")
-        save_viz_no_gt(img_path, original, probs, mask, out_dir)
-
-print(f"\nRezultate salvate in: {out_dir}/")
+if __name__ == "__main__":
+    main()

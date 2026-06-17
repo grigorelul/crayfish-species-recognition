@@ -1,23 +1,10 @@
-# Ignore dataset and article folders
-Articole/
-BazaDeDateRaci/
-BazaDeDateRaci_Augmented/
-dataset/
-dataset_cls/
-predictions/
-predictions_cls/
-ExempleExterneDeTest/
+# Ignore everything in the repository
+*
 
-# Ignore Python cache and temporary files
-__pycache__/
-*.pyc
-*.pyo
-
-# Mediu virtual
-venv311/
-
-# JetBrains IDEs
-.idea/
-
-# VSCode
-.vscode/
+# Keep only the three requested files
+!/.gitignore
+!CropRaci.py
+!Predict.py
+!TrainClassifier.py
+best_cls_model.pth
+best_model.pth
