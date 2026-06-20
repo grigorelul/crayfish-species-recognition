@@ -1,12 +1,3 @@
-"""
-TrainClassifier.py — Clasificare Raci de Apa Dulce
-====================================================
-AlexNet cu transfer learning din ImageNet.
-Surse:
-  [1] Krizhevsky et al. (2012) - ImageNet Classification with Deep CNNs
-  [2] https://cvml.ista.ac.at/courses/DLWT_W17/material/AlexNet.pdf
-"""
-
 import random
 import time
 import numpy as np
@@ -35,7 +26,7 @@ IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".bmp", ".tiff", ".tif", ".webp"}
 
 
 IMG_SIZE        = 227
-BATCH_SIZE      = 64
+BATCH_SIZE      = 32
 LEARNING_RATE   = 0.001
 MOMENTUM        = 0.9
 WEIGHT_DECAY    = 0.0005
