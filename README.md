@@ -39,7 +39,7 @@ Acest proiect folosește doar trei scripturi principale:
 
 ## Cerințe
 
-Instalează dependențele cu:
+Instalează dependințele cu:
 
 ```bash
 pip install -r requirements.txt
