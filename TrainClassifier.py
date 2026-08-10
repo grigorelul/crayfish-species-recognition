@@ -135,7 +135,7 @@ def train_model():
     for path, lbl in samples:
         per_class.setdefault(lbl, []).append((path, lbl))
     for lbl in per_class:
-        random.shuffle(per_class[lbl]) # amestec imaginile din fiecare clasa
+        random.shuffle(per_class[lbl])
 
     train_samples, val_samples, test_samples = [], [], []
     class_idx_to_name = {v: k for k, v in label_map.items()}

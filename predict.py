@@ -121,7 +121,6 @@ def show_gui(image_path, pred_idx, probs):
     except ImportError:
         pass
 
-# ────────Main─────────────────
 
 def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
