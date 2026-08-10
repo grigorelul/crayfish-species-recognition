@@ -1,6 +1,12 @@
 # Ignore everything in the repository
 *
 
+# Except for the following files and directories
+!*/
+
+#Ignore all files in the venv311 directory
+venv311
+
 # Keep only these files
 !/.gitignore
 !CropRaci.py
@@ -8,3 +14,5 @@
 !TrainClassifier.py
 !README.md
 !requirements.txt
+!DizertatieSmarandacheGrigorie_24iunie/**
+!UVTPosterSmarandacheGrigorie/**

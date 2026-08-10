@@ -1,0 +1,213 @@
+\documentclass[12pt,a4paper]{report}
+\usepackage{amsmath,amsthm,amssymb,graphicx,hyperref}
+% \usepackage{lmodern}
+% \usepackage{newtxtext,newtxmath}
+\usepackage[left=1.2in,right=1in,top=1in,bottom=1in]{geometry}
+\usepackage[romanian]{babel}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{listings}
+\usepackage[table]{xcolor}
+\usepackage{xcolor}
+\usepackage{subcaption}
+\usepackage{tabularx}
+\usepackage{multirow}
+\usepackage{paralist}
+\RequirePackage{hyphenat}
+\usepackage{algorithm, algpseudocode}%algorithmic
+\usepackage[inline]{enumitem}
+
+
+%\usepackage{...insert other packages here...}
+\newtheorem{thm}{Teorema}[section]
+\newtheorem{lem}[thm]{Lema}
+\newtheorem{cor}[thm]{Corolarul}
+\newtheorem{prop}[thm]{Propozi\c tia}
+\theoremstyle{definition}
+\newtheorem{defn}{Defini\c tia}[section]
+\theoremstyle{remark}
+\newtheorem{rem}{Remarca}[section]
+\newtheorem{exmp}{Exemplul}[section]
+
+\def\contentsname{Cuprins}
+\def\listfigurename{Lista figurilor}
+\def\listtablename{Lista tabelelor}
+\def\figurename{Figura}
+\def\tablename{Tabelul}
+\def\partname{Partea}
+\def\chaptername{Capitolul}
+\def\refname{Referin'te}
+\def\bibname{Bibliografie} 
+\def\appendixname{Anexa}
+
+\begin{document}
+\thispagestyle{empty}
+\begin{center}
+\begin{figure}[h!]
+\vspace{-20pt}
+\begin{center}
+\includegraphics[width=100pt]{figs/FI.png}
+\end{center}
+\end{figure}
+
+
+{\large{\bf UNIVERSITATEA DE VEST DIN TIMIȘOARA
+
+FACULTATEA DE INFORMATICĂ
+
+PROGRAMUL DE STUDII DE MASTER: Bioinformatică }}
+
+\vspace{120pt}
+{\huge {\bf LUCRARE DE DIZERTA\c TIE}}
+
+\vspace{150pt}
+\end{center}
+
+{\large\noindent{\bf COORDONATOR:\hfill ABSOLVENT:}
+
+\noindent Prof. Dr. Habil. Zaharie Daniela \hfill Smarandache Grigorie-Theodor}
+
+\large\noindent Prof. Dr. Habil. Pârvulescu Lucian
+
+
+\vfill
+\begin{center}
+{\bf TIMI\c SOARA
+
+2026}
+\end{center}
+\newpage
+\thispagestyle{empty}
+\begin{center}
+{\large{\bf UNIVERSITATEA DE VEST DIN TIMI\c SOARA
+
+FACULTATEA DE INFORMATIC\u A
+
+
+PROGRAMUL DE STUDII DE MASTER: Bioinformatic\u a }}
+
+\vspace{120pt}
+{\huge {\bf Identificarea automată a speciilor de raci din genul Austropotamobius prin tehnici de deep learning pe bază de imagini}}
+
+\vspace{150pt}
+\end{center}
+
+{\large\noindent{\bf COORDONATOR:\hfill ABSOLVENT:}
+
+\noindent Prof. Dr. Habil. Zaharie Daniela \hfill Smarandache Grigorie-Theodor}
+
+\large\noindent Prof. Dr. Habil. Pârvulescu Lucian
+
+\vfill
+\begin{center}
+{\bf TIMI\c SOARA
+
+2026}
+\end{center}
+\newpage
+\normalsize{}
+
+
+
+\section*{Abstract}
+
+Correctly identifying freshwater crayfish species of the genus \textit{Austropotamobius} is an important problem both from a biological and a practical standpoint, given that the presence and distribution of these crustaceans provide valuable indicators of aquatic habitat conditions. The task is made considerably more difficult by the pronounced morphological similarity between the two species addressed in this work, \textit{Austropotamobius bihariensis} and \textit{Austropotamobius torrentium}, which share a smooth carapace, a discreet postorbital ridge without a spine, and a triangular-shaped rostrum, differing only in fine details such as the relative length of the antennal scale or the roughness of the chelae. Additional intraspecific colour variability, particularly pronounced in \textit{A. torrentium}, further reduces the reliability of colour as a discriminative trait and increases the importance of shape and texture-based features. Manual identification is consequently dependent on evaluator experience and on the clarity of the available morphological cues, motivating the development of an automated, objective, and reproducible alternative.
+
+This work proposes a binary automatic classification solution for the two species based on field photographs, using the AlexNet convolutional neural network architecture adapted through transfer learning from ImageNet. A custom dataset was built specifically for this purpose, consisting of 318 images collected directly from natural habitats across Romania, under uncontrolled lighting conditions and variable backgrounds typical of the aquatic environment. The images were manually annotated using the open-source LabelMe tool, and a dedicated processing pipeline was implemented to automatically extract the regions of interest corresponding to each specimen, based on the annotated bounding boxes, followed by resizing to the input resolution required by the AlexNet architecture.
+
+The convolutional layers of the AlexNet model, pre-trained on the large-scale ImageNet dataset, were kept frozen throughout training in order to preserve the general visual representations learned from over a million diverse images, while the original 1000-class output layer was replaced and the fully connected classifier was fine-tuned for the binary classification task. The training procedure was refined iteratively across several configurations, incorporating stratified data splitting, extensive runtime data augmentation, and careful hyperparameter tuning. The final model, selected based on validation accuracy and obtained through the configuration that introduced automatic region-of-interest extraction, achieved an accuracy of 95.92\% on an independent test set, correctly classifying 47 out of 49 unseen images.
+
+The results demonstrate that transferring knowledge from a model pre-trained on a large-scale dataset represents a viable and effective solution for the automatic identification of morphologically similar, protected species, even under conditions of limited data availability, which are common in biodiversity studies focused on rare or endangered taxa. The work also discusses the main limitations of the proposed approach, related to the reduced size of the available dataset and the need for manual annotation prior to classification, and outlines several directions for future development, including the use of more modern architectures and the integration of automatic detection modules for processing unprocessed field images.
+
+\newpage
+
+\section*{Rezumat}
+
+Identificarea corectă a speciilor de raci de apă dulce din genul \textit{Austropotamobius} este o problemă importantă atât din punct de vedere biologic, cât și practic, având în vedere că prezența și distribuția acestor crustacee oferă indicatori valoroși pentru starea habitatelor acvatice. Sarcina este considerabil mai dificilă din cauza similarității morfologice pronunțate dintre cele două specii abordate în această lucrare, \textit{Austropotamobius bihariensis} și \textit{Austropotamobius torrentium}, care au în comun o crustă netedă, o creastă postorbitală discretă fără spin și un rostru de formă triunghiulară, diferind doar prin detalii fine, precum lungimea relativă a solzului antenal sau gradul de rugozitate al chelelor. Variabilitatea intraspecifică suplimentară de colorit, deosebit de pronunțată la \textit{A. torrentium}, reduce și mai mult fiabilitatea culorii ca trăsătură discriminatorie și crește importanța caracteristicilor bazate pe formă și textură. Identificarea manuală depinde, în consecință, de experiența evaluatorului și de claritatea reperelor morfologice disponibile, motivând dezvoltarea unei alternative automate, obiective și reproductibile.
+
+Această lucrare propune o soluție de clasificare automată binară a celor două specii pe baza fotografiilor de teren, utilizând arhitectura de rețea neuronală convoluțională AlexNet, adaptată prin transfer learning din ImageNet. A fost construit special în acest scop un set de date propriu, format din 318 imagini colectate direct din habitate naturale de pe teritoriul României, în condiții de iluminare necontrolate și cu fundaluri variabile, specifice mediului acvatic. Imaginile au fost adnotate manual cu instrumentul open-source LabelMe, iar un flux de procesare dedicat a fost implementat pentru extragerea automată a regiunilor de interes corespunzătoare fiecărui exemplar, pe baza bounding box-urilor adnotate, urmată de redimensionarea la rezoluția de intrare necesară arhitecturii AlexNet.
+
+Straturile convoluționale ale modelului AlexNet, pre-antrenat pe setul de date de mari dimensiuni ImageNet, au fost menținute înghețate pe toată durata antrenării, pentru a păstra reprezentările vizuale generale învățate din peste un milion de imagini diverse, în timp ce stratul de ieșire original, cu 1000 de clase, a fost înlocuit, iar clasificatorul complet conectat a fost ajustat fin pentru sarcina de clasificare binară. Procedura de antrenare a fost rafinată iterativ de-a lungul mai multor configurații, incluzând împărțirea stratificată a datelor, augmentarea extinsă a acestora în timpul execuției și ajustarea atentă a hiperparametrilor. Modelul final, selectat pe baza acurateței de validare a obținut prin configurația care a introdus extragerea automată a regiunii de interes, a atins o acuratețe de 95,92\% pe un set de testare independent, clasificând corect 47 din cele 49 de imagini nevăzute anterior.
+
+Rezultatele demonstrează că transferul cunoștințelor de la un model pre-antrenat pe un set de date de mari dimensiuni reprezintă o soluție viabilă și eficientă pentru identificarea automată a unor specii protejate, similare din punct de vedere morfologic, chiar și în condiții de disponibilitate limitată a datelor, frecvente în studiile de biodiversitate axate pe taxoni rari sau pe cale de dispariție. Lucrarea discută, de asemenea, principalele limitări ale abordării propuse, legate de dimensiunea redusă a setului de date disponibil și de necesitatea adnotării manuale prealabile clasificării, și prezintă mai multe direcții de dezvoltare ulterioară, incluzând utilizarea unor arhitecturi mai moderne și integrarea unor module automate de detecție pentru procesarea imaginilor de teren neprocesate.
+
+
+\newpage
+
+\section*{Declarație de integritate științifică}
+Declar că această lucrare de disertație reprezintă un raport original și constituie propria mea muncă, realizată sub coordonarea Zaharie Daniela și Pârvulescu Lucian. În această lucrare, metodele de cercetare, precum și procesele de colectare, analiză și interpretare a datelor, sunt prezentate corect, iar toate sursele au fost citate corespunzător acolo unde am utilizat idei și materiale vizuale aparținând altor autori.
+
+Am utilizat instrumente de inteligență artificială generativă în procesul de redactare și cercetare. Detaliile se regăsesc în Anexa \ref{genAIUsage}.
+
+\newpage
+\tableofcontents
+\newpage
+
+\include{1_Introducere}
+
+
+
+\include{2_Metode_de_analiză_a_imaginilor}
+
+
+\include{3_Descrierea_problemei_si_abordari_existente}
+
+
+
+\include{4_Flux_de_prelucrări_pentru_identificarea_speciei}
+
+
+\include{5_Rezultate_și_discuții}
+
+\include{6_Concluzii}
+
+
+
+\bibliography{mybib}
+\bibliographystyle{alpha}
+\addcontentsline{toc}{chapter}{Bibliography}
+
+\appendix
+\chapter{Anexă - Utilizarea instrumentelor de inteligență artificială generativă}
+\label{genAIUsage}
+În această anexă este prezentată o sinteză a modului în care au fost utilizate instrumentele de inteligență artificială generativă în cadrul lucrării. O imagine de ansamblu este oferită în Tabelul \ref{tab:genAIOverview}.
+
+\begin{table}[h!]
+    \centering
+    \begin{tabularx}{\textwidth}{|l|X|X|X|}
+            \hline \rowcolor{blue!20}
+         Instrument AI& Scopul utilizării & Secțiuni în care a fost utilizat & Observații \\\hline
+         \multirow{4}{*}{Claude Sonnet 4.6} & Traducerea abstractului din română în engleză & Abstract & Detalii în secțiunea \ref{sectionClaude} \\ \cline{2-4}
+
+          & Asistență la depanarea erorilor de cod (LaTeX și Python) & Întreaga lucrare & Detalii în secțiunea \ref{sectionClaude} \\ \cline{2-4}
+
+          & Generarea figurilor grid cu exemple din setul de date (imagine originală + regiune de interes extrasă) & Capitolul 4 & Detalii în secțiunea \ref{sectionClaude} \\ \cline{2-4}
+
+          & Identificarea unor lucrări suplimentare relevante și a unor surse alternative de acces pentru articole inaccesibile prin căutarea proprie & Capitolul 3 & Detalii în secțiunea \ref{sectionClaude} \\ \hline
+    \end{tabularx}
+    \caption{Sinteza utilizării instrumentelor de inteligență artificială generativă}
+    \label{tab:genAIOverview}
+\end{table}
+
+
+\section{Detalii privind utilizarea Claude Sonnet 4.6}
+\label{sectionClaude}
+
+Instrumentul Claude Sonnet 4.6 (Anthropic) \footnote{https://claude.com/} a fost utilizat pe parcursul redactării lucrării pentru patru tipuri de sarcini: traducerea abstractului, depanarea erorilor de cod, generarea figurilor de tip grid din Capitolul 4 și identificarea unor surse bibliografice suplimentare în Capitolul 3.
+
+\textbf{Traducerea abstractului} a constat în obținerea unei variante în limba engleză a abstractului lucrării, pe baza textului original în limba română. De exemplu, a fost folosit promptul: \textit{"am scris abstractul ăsta în română, îl pun mai jos, poți să-l traduci în engleză?"}. Pentru termenii tehnici asupra cărora exista incertitudine, traducerea a fost completată cu întrebări suplimentare precum \textit{"de unde vine cuvântul ăsta în engleză, ăsta e termenul corect sau mai e altul mai folosit?"}, ceea ce a permis o alegere mai informată a echivalentului în limba engleză. Rezultatul a fost verificat propoziție cu propoziție, prin compararea sensului traducerii cu textul original, iar pentru termenii rămași incerți a fost căutată suplimentar confirmarea pe internet, înainte ca varianta finală să fie integrată direct ca abstract al lucrării.
+
+\textbf{Asistența la depanarea erorilor de cod} (LaTeX și Python) a fost solicitată ori de câte ori a apărut o eroare sau un avertisment de compilare, precum cel ilustrat în Figura~\ref{fig:eroare_latex_claude}, sau o eroare de execuție pe parcursul redactării. De exemplu, pentru avertismentul din figură a fost folosit promptul: \textit{"am inca 2 warninguri la fontul asta, OMS/cmtt, de unde vin si cum scap de ele?"}. Pentru fiecare problemă semnalată, a fost cerută nu doar o soluție, ci și explicația cauzei erorii și a motivului pentru care soluția propusă o rezolva, astfel încât remedierea să fie înțeleasă, nu doar aplicată mecanic. Fiecare soluție a fost testată efectiv, prin compilare în Overleaf, respectiv prin rularea scriptului Python corespunzător, și a fost integrată în fișierele sursă ale lucrării doar după confirmarea că funcționează corect.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{figs/EroareLatex.png}
+    \caption{Exemplu de avertisment de compilare semnalat de Overleaf, pentru care a fost solicitată asistență la depanare.}
+    \label{fig:eroare_latex_claude}
+\end{figure}
+
+\textbf{Generarea figurilor de tip grid} din Capitolul 4, cu exemple din setul de date procesat (imaginea originală alături de regiunea de interes extrasă corespunzătoare), a fost realizată prin furnizarea imaginilor individuale, în mai multe runde succesive, pe măsură ce grid-ul era completat, și solicitarea compunerii acestora într-o singură imagine. De exemplu, a fost folosit promptul: \textit{"îți mai dau câteva poze cu raci, poți să le pui pe toate într-o singură imagine, tip grid?"}. Figura rezultată a fost verificată vizual, pentru a confirma corectitudinea asocierii dintre fiecare imagine originală și crop-ul corespunzător, înainte de a fi integrată în Capitolul 4,  Figura~\ref{fig:crop_torrentium} și respectiv Figura~\ref{fig:crop_bihariensis}.
+
+\textbf{Identificarea de surse bibliografice suplimentare}, relevante pentru cercetarea prezentată în Capitolul 3, a completat căutarea proprie a autorului cu lucrări conexe și cu surse alternative de acces pentru articole găsite independent, dar inaccesibile prin metodele uzuale de căutare. De exemplu, pentru clarificarea dimensiunii reale de intrare a arhitecturii AlexNet a fost folosit promptul: \textit{"lucrarea originală a lui Krizhevsky zice 224x224 dar cifrele nu se leagă, poți să verifici și să-mi găsești o sursă care explică de ce e de fapt 227x227?"}, care a condus la identificarea implementării de referință \url{https://github.com/dansuh17/alexnet-pytorch} \cite{suh2018alexnet}. Pentru fiecare temă sau articol căutat, au fost solicitate lucrări similare sau linkuri alternative către sursa respectivă. Toate sursele și linkurile propuse au fost verificate manual, prin accesare directă, pentru a confirma existența și relevanța acestora, înainte ca acestea să fie citate în lucrare.
+
+\end{document}

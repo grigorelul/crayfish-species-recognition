@@ -1,0 +1,23 @@
+\chapter{Concluzii}\label{chapter:cap6}
+
+Acest capitol sintetizează concluziile finale ale lucrării pe baza rezultatelor prezentate în Capitolul~\ref{chapter:cap5}, evidențiază principalele limitări ale abordării propuse și prezintă direcțiile de dezvoltare ulterioară a soluției de clasificare automată a celor două specii de \textit{Austropotamobius}.
+
+
+Lucrarea de față a demonstrat că identificarea automată a speciilor de raci de apă dulce din genul \textit{Austropotamobius} prin tehnici de deep learning reprezintă o abordare viabilă și eficientă chiar și în condiții de eșantionare limitată. Prin adaptarea arhitecturii AlexNet cu transfer learning din ImageNet și antrenarea pe un set de date de 318 imagini colectate din teren, s-a obținut o acuratețe de \textbf{95,92\%} pe setul de testare independent, demonstrând că modelul discriminează cu succes între \textit{Austropotamobius bihariensis} și \textit{Austropotamobius torrentium}.
+
+Procesul iterativ de rafinare a evidențiat contribuția distinctă a fiecărei intervenții tehnice. Înghețarea blocului convoluțional și utilizarea reprezentărilor pre-antrenate pe ImageNet au produs primul salt major de performanță, de la 62,50\% la 87,50\%, confirmând transferabilitatea trăsăturilor vizuale generale la domeniul biologiei acvatice. Introducerea extragerii automate a regiunilor de interes pe baza adnotărilor LabelMe a generat al doilea salt semnificativ, de la 87,50\% la 95,92\%, subliniind importanța critică a calității datelor de intrare în raport cu complexitatea arhitecturii utilizate.
+
+\section*{Limitări}
+
+Principala limitare a lucrării constă în dimensiunea redusă a setului de date disponibil (318 imagini), care restrânge capacitatea de generalizare a modelului la variații morfologice și de iluminare nereprezentate în datele de antrenare. De asemenea, setul de date prezintă un dezechilibru moderat între clase (182 față de 136 de imagini), care, deși a fost gestionat prin împărțirea stratificată, poate influența performanța modelului pe clase subreprezentate. O altă limitare constă în necesitatea adnotării manuale prealabile a imaginilor pentru extragerea regiunilor de interes, ceea ce face ca fluxul actual să nu fie aplicabil direct pe imagini de teren neprelucrate fără intervenție umană.
+
+\section*{Direcții viitoare}
+
+Direcțiile de dezvoltare ulterioară vizează mai multe aspecte. Extinderea setului de date prin colectarea de noi imagini de teren ar permite antrenarea unor modele mai robuste și validarea performanței pe o varietate mai mare de condiții de captură. Înlocuirea arhitecturii AlexNet cu arhitecturi moderne de tip EfficientNet sau ResNet, proiectate pentru eficiență ridicată pe seturi de date mici, reprezintă o direcție naturală de îmbunătățire a performanței.
+
+Integrarea unui modul de detecție automată a specimenelor direct pe imaginile de teren neprelucrate, prin tehnici de tip YOLO, ar elimina necesitatea adnotării manuale și ar permite construirea unui sistem complet automat de identificare a speciilor, utilizabil direct în activitățile de monitorizare a biodiversității acvatice. În final, extinderea clasificatorului la mai mult de două specii, prin includerea altor reprezentanți ai genului \textit{Austropotamobius} sau a altor specii de raci de apă dulce din România, ar crește semnificativ aplicabilitatea practică a sistemului dezvoltat.
+
+% \chapter{Concluzii}
+
+% \section{Concluzii finale}
+% \section{Direcții viitoare}

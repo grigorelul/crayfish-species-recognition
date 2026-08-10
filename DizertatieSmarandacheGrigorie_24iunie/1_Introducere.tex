@@ -1,0 +1,45 @@
+\chapter{Introducere}\label{chapter:cap1}
+
+
+\section{Context}
+
+Identificarea speciilor de rac este importantă atât din punct de vedere biologic, cât și practic, în special în studiile dedicate monitorizării ecosistemelor acvatice. Prezența și distribuția racilor oferă informații despre starea habitatelor, motiv pentru care determinarea corectă a speciilor este relevantă atât pentru studiile taxonomice, cât și pentru cercetările privind biodiversitatea.
+
+Identificarea speciilor se bazează pe analiza unor caractere morfologice externe, observabile direct pe exemplar sau în imagini. Printre reperele urmărite se numără forma rostrului, dezvoltarea crestelor postorbitale, aspectul șanțului cervical, particularitățile cleștilor, precum și alte elemente ale cefalotoracelui și abdomenului. Aceste caracteristici stau la baza cheilor de determinare și permit diferențierea speciilor pe baza trăsăturilor anatomice vizibile \cite{parvulescu2009}.
+
+Problema devine considerabil mai dificilă atunci când speciile vizate prezintă similarități morfologice pronunțate. Este exact cazul celor două specii care fac obiectul lucrării, \textit{Austropotamobius bihariensis} și \textit{Austropotamobius torrentium}: ambele au crusta netedă, creasta postorbitală discretă fără spin și rostrul de formă triunghiulară, diferențele constând în detalii fine precum lungimea relativă a solzului antenal sau gradul de rugozitate al chelelor \cite{parvulescu2009}. La acestea se adaugă o variabilitate intraspecifică de colorit considerabilă, mai ales la \textit{A. torrentium}, care reduce fiabilitatea culorii ca trăsătură discriminatorie și obligă la o analiză atentă a formei și texturii.
+
+Identificarea manuală nu este întotdeauna ușoară, deoarece depinde de experiența evaluatorului și de claritatea caracteristicilor morfologice observabile. În acest sens, imaginile sunt utile, întrucât permit analizarea repetată a unor detalii morfologice esențiale. Literatura de specialitate arată că imaginile în care zona cefalică este surprinsă atât în vedere dorsală, cât și în vedere laterală sunt deosebit de utile pentru identificare \cite{parvulescu2009}.
+
+În ultimii ani, metodele de procesare a imaginilor și tehnicile de învățare automată au făcut posibilă abordarea automată a problemelor de clasificare biologică. 
+Rețelele neuronale convoluționale, în particular, s-au impus drept instrumentul principal pentru extragerea automată a trăsăturilor vizuale relevante din imagini, eliminând nevoia ingineriei  manuale a caracteristicilor specifică abordărilor clasice. Astfel, imaginile pot fi utilizate nu doar ca suport pentru evaluarea umană, ci și ca date de intrare pentru modele capabile să detecteze regiuni de interes și să extragă trăsături relevante pentru recunoaștere, oferind o alternativă obiectivă și reproductibilă identificării manuale, mai ales în condiții de eșantionare limitată, frecvente în studiile pe specii protejate.
+
+\section{Scopul și obiectivele lucrării}
+
+Scopul lucrării este dezvoltarea și evaluarea unei soluții de clasificare automată a celor două specii de raci de apă dulce, \textit{Austropotamobius bihariensis} și \textit{Austropotamobius torrentium}, pe baza imaginilor, utilizând tehnici de deep learning. Lucrarea pornește de la ideea că trăsăturile morfologice vizibile ale exemplarelor pot fi învățate automat de o rețea neuronală convoluțională, dacă imaginile sunt surprinse clar și prelucrate corespunzător, oferind astfel o alternativă obiectivă și reproductibilă identificării manuale.
+
+Un prim obiectiv al lucrării este prezentarea contextului biologic al problemei și evidențierea principalelor repere morfologice utilizate în identificarea celor două specii, precum și a dificultăților specifice generate de similaritatea lor morfologică pronunțată.
+
+Un al doilea obiectiv este analiza abordărilor existente în literatură pentru identificarea automată a racilor, în special soluții bazate pe detecția și segmentarea de obiecte din familia YOLO ("You Only Look Once") \cite{YOLO2025}, și evidențierea modului în care acestea se diferențiază de problema de clasificare a unui specimen ca aparținând
+uneia dintre cele două specii care este abordată în lucrare.
+
+
+Un al treilea obiectiv este construirea unui flux complet de prelucrare a imaginilor proprii, colectate din teren, incluzând adnotarea manuală a regiunilor de interes, extragerea automată a specimenelor din imaginile brute și pregătirea unui set de date adecvat pentru antrenarea unui model de clasificare.
+
+Un alt obiectiv al lucrării este adaptarea arhitecturii AlexNet \cite{krizhevsky2012imagenet}, prin tehnica transfer learning, pentru clasificarea binară a celor două specii, valorificând reprezentările vizuale generale învățate pe setul de date ImageNet pentru a compensa dimensiunea redusă a setului de date propriu.
+
+Lucrarea urmărește, în final, evaluarea performanței soluției propuse pe un set de testare independent și evidențierea limitelor abordării, precum și a direcțiilor de dezvoltare ulterioară. Astfel, demersul de față nu urmărește doar construirea unei soluții tehnice funcționale, ci și analiza utilității ei practice în contextul monitorizării biodiversității acvatice.
+
+\section{Structura lucrării}
+
+Lucrarea este organizată în șase capitole. Capitolul 1 prezintă contextul general al temei, evidențiază importanța identificării speciilor de rac și formulează scopul și obiectivele lucrării.
+
+Capitolul 2 descrie principalele metode de analiză automată a imaginilor relevante pentru problema studiată, incluzând arhitectura și procesul de învățare al rețelelor neuronale convoluționale, modele destinate segmentării imaginilor (U-Net \cite{ronneberger2015unet}, ResNet \cite{he2016resnet}, EfficientNet \cite{tan2019efficientnet}) și modele destinate detecției obiectelor din imagini, din familia YOLO.
+
+Capitolul 3 detaliază particularitățile problemei de identificare a celor două specii vizate și prezintă o analiză critică a abordărilor existente în literatură pentru identificarea automată a racilor, incluzând lucrări bazate pe YOLOv11n și YOLOv8n, precum și arhitectura AlexNet, evidențiind modul în care acestea se diferențiază de problema de clasificare între diferite specii abordată în lucrare.
+
+Capitolul 4 prezintă fluxul complet de prelucrare dezvoltat pentru identificarea speciei, de la setul de date propriu colectat din teren, prin adnotarea și extragerea regiunilor de interes, până la adaptarea arhitecturii AlexNet prin transfer learning și configurația procesului de antrenare.
+
+Capitolul 5 prezintă rezultatele experimentale obținute și interpretarea acestora, fiind discutate performanțele modelului propus, analiza evoluției acurateței de-a lungul configurațiilor experimentate și raportarea rezultatelor în relație cu abordările existente din literatură.
+
+Capitolul 6 include concluziile finale ale lucrării, evidențiază limitele soluției propuse și prezintă direcțiile viitoare de dezvoltare a abordării.
